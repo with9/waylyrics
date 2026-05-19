@@ -287,10 +287,10 @@ fn build_ui(app: &Application) -> Result<()> {
     let _ = ENABLE_LOCAL_LYRIC.set(enable_local_lyric);
     let _ = EXTRACT_TRANSLATED_LYRIC.set(extract_translated_lyric);
 
-    MAIN_WINDOW.set(Some(wind));
+    MAIN_WINDOW.set(Some(wind.clone()));
     PLAYER_IDENTITY_BLACKLIST.set(player_identity_blacklist);
     PLAYER_NAME_BLACKLIST.set(player_name_blacklist);
-
+    wind.set_visible(false);
     Ok(())
 }
 

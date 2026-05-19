@@ -63,7 +63,36 @@ fn set_lyric(window: &app::Window, text: Option<&LyricLineOwned>, position: &str
     let text = text
         .map(|LyricLineOwned { text, .. }| text.as_str().trim())
         .unwrap_or_default();
+if position == "above" || position == "below" {
+        thread_local! {
+            static CURRENT_ABOVE: std::cell::RefCell<String> = std::cell::RefCell::new(String::new());
+            static CURRENT_BELOW: std::cell::RefCell<String> = std::cell::RefCell::new(String::new());
+            static LAST_WRITTEN: std::cell::RefCell<String> = std::cell::RefCell::new(String::new());
+        }
 
+        if position == "above" {
+            CURRENT_ABOVE.with(|a| *a.borrow_mut() = text.to_string());
+        } else {
+            CURRENT_BELOW.with(|b| *b.borrow_mut() = text.to_string());
+        }
+
+        let full_content = CURRENT_ABOVE.with(|a| {
+            CURRENT_BELOW.with(|b| {
+                format!("{}\n{}", a.borrow(), b.borrow())
+            })
+        });
+
+        LAST_WRITTEN.with(|lw| {
+            let mut lw_borrow = lw.borrow_mut();
+            if *lw_borrow != full_content {
+                *lw_borrow = full_content.clone();
+
+                std::thread::spawn(move || {
+                    let _ = std::fs::write("/tmp/me/current_waylyrics.txt", full_content);
+                });
+            }
+        });
+    }
     get_label(window, position).set_label(text);
 }
 
